@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GenProj;
 
 namespace ConsoleApplication1
 {
@@ -10,6 +7,29 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
+            var list = new GenList<int>();
+
+            for (int i = 1; i < 5; i++)
+            {
+                list.AddToHead(i * 2);
+                Console.WriteLine("Добавлено значение :" + i * 2);
+            }
+
+            list.GoToHead();
+            try
+            {
+
+                for (int i = 1; i < 100; i++)
+                {
+                    Console.WriteLine("Значение элемента " + i + ": " + list.GetNext());
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            Console.ReadLine(); 
         }
     }
 }
