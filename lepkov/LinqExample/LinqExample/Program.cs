@@ -8,7 +8,7 @@ namespace LinqExample
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] args) //todo : rename
         {
             // Заполняем список АЗС
             var gasList = new GasStation[]
@@ -26,14 +26,20 @@ namespace LinqExample
             // группируем по названию улицы
             var strLst = from gas in gasList
                 group gas by gas.Street
-                into sd
+                into sd //todo : street
                          orderby sd.Key                                         // соритруем по названию улицы 
                          select new {Name = sd.Key, GasCount = sd.Count()};     // создаём список пар { Улица, Кол-во_АЗС}
+
+
 
             foreach (var s in strLst)
             {
                 Console.WriteLine("На улице {0} \tрасполагается {1} АЗС.", s.Name, s.GasCount);
             }
+
+
+            // todo: методы расширения 
+            
             Console.ReadLine();
         }
     }
