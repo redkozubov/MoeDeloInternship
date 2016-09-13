@@ -2,124 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Xml.Serialization;
+using ExceptionPractice.MyExceptions;
 
 namespace ExceptionPractice
 {
-
-    #region "my exceptions"
-    public class MyException : Exception
-    {
-        public MyException()
-        {
-        }
-
-        public MyException(string str) : base(str)
-        {
-        }
-
-        public MyException(string str, Exception inner) : base(str, inner)
-        {
-        }
-
-        protected MyException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-
-        public override string ToString()
-        {
-            return (Message + ((InnerException != null) ? InnerException.ToString() : "")
-                    + Source + StackTrace);
-        }
-    }
-
-    public class UserForgottenFileException : MyException
-    {
-        public UserForgottenFileException()
-        {
-        }
-
-        public UserForgottenFileException(string str) : base(str)
-        {
-        }
-
-        public UserForgottenFileException(string str, Exception inner) : base(str, inner)
-        {
-        }
-
-        protected UserForgottenFileException(SerializationInfo si, StreamingContext sc) : base(si, sc)
-        {
-        }
-    }
-
-    public class FactDateInFutureException : MyException
-    {
-        public FactDateInFutureException()
-        {
-        }
-
-        public FactDateInFutureException(string str)
-            : base(str)
-        {
-        }
-
-        public FactDateInFutureException(string str, Exception inner)
-            : base(str, inner)
-        {
-        }
-
-        protected FactDateInFutureException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-    }
-
-    public class NoDataException : MyException
-    {
-        public NoDataException()
-        {
-        }
-
-        public NoDataException(string str)
-            : base(str)
-        {
-        }
-
-        public NoDataException(string str, Exception inner)
-            : base(str, inner)
-        {
-        }
-
-        protected NoDataException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-    }
-
-    public class IncorrectFileFormatException : MyException
-    {
-        public IncorrectFileFormatException()
-        {
-        }
-
-        public IncorrectFileFormatException(string str) : base(str)
-        {
-        }
-
-        public IncorrectFileFormatException(string str, Exception inner) : base(str, inner)
-        {
-        }
-
-        protected IncorrectFileFormatException(SerializationInfo si, StreamingContext sc)
-            : base(si, sc)
-        {
-        }
-    }
-
-    #endregion
-
     public class Program
     {
         static void Main()
@@ -230,7 +117,7 @@ namespace ExceptionPractice
             {
                 tasks = (List<Task>) formatter.Deserialize(fs);
             }
-            catch (Exception e)
+            catch (InvalidOperationException e)
             {
                 throw new IncorrectFileFormatException("Некорректный формат XML файла", e);
             }
@@ -253,8 +140,7 @@ namespace ExceptionPractice
             {
                 return new FileStream(fileName, FileMode.OpenOrCreate);
             }
-            else
-                throw new UserForgottenFileException();
+            throw new UserForgottenFileException();
         }
 
         /// <summary>

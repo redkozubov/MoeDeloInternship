@@ -41,6 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MyExceptions\FactDateInFutureException.cs" />
+    <Compile Include="MyExceptions\IncorrectFileFormatException.cs" />
+    <Compile Include="MyExceptions\MyException.cs" />
+    <Compile Include="MyExceptions\NoDataException.cs" />
+    <Compile Include="MyExceptions\UserForgottenFileException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
