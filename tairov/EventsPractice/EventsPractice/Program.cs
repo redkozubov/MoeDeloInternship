@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 
-
 namespace EventsPractice
 {
     public class Counter : EventArgs
@@ -10,48 +9,41 @@ namespace EventsPractice
     }
     public class Ping
     {
-        private int count;
         public event EventHandler<Counter> PingEvent;
 
-        public void OnPingEvent()
+        public void OnPingEvent(Counter arg)
         {
-            Counter c = new Counter();
             if (PingEvent != null)
             {
-                c.Count = ++count;
-                PingEvent(this, c);
+                PingEvent(this, arg);
             }
         }
-
-        public void Handler(object s, Counter arg)
+        public void PingNext(object s, Counter arg)
         {
-            count = arg.Count;
+            ++arg.Count;
             Console.WriteLine("Ping recieved Pong, value = " + arg.Count);
             Thread.Sleep(1000);
-            OnPingEvent();
+            OnPingEvent(arg);
         }
     }
     public class Pong
     {
-        private int count;
         public event EventHandler<Counter> PongEvent;
 
-        public void OnPongEvent()
+        public void OnPongEvent(Counter arg)
         {
-            Counter c = new Counter();
             if (PongEvent != null)
             {
-                c.Count = ++count;
-                PongEvent(this, c);
+                PongEvent(this, arg);
             }
         }
 
-        public void Handler(object s, Counter arg)
+        public void PongNext(object s, Counter arg)
         {
-            count = arg.Count;
+            ++arg.Count;
             Console.WriteLine("Pong recieved Ping, value = " + arg.Count);
             Thread.Sleep(1000);
-            OnPongEvent();
+            OnPongEvent(arg);
         }
     }
     class Program
@@ -60,9 +52,10 @@ namespace EventsPractice
         {
             Ping pingObj = new Ping();
             Pong pongObj = new Pong();
-            pongObj.PongEvent += pingObj.Handler;
-            pingObj.PingEvent += pongObj.Handler;
-            pongObj.OnPongEvent();
+            Counter pingPongCounter = new Counter();
+            pongObj.PongEvent += pingObj.PingNext;
+            pingObj.PingEvent += pongObj.PongNext;
+            pongObj.OnPongEvent(pingPongCounter);
             return 0;
         }
     }
