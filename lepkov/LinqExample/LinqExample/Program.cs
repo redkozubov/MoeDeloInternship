@@ -43,9 +43,9 @@ namespace LinqExample
             // todo: методы расширения 
 
             streetList =
-                gasStationListList.GroupBy(n => n.Street)
-                    .OrderBy(n => n.Key)
-                    .Select(n => new {Name = n.Key, GasCount = n.Count()});
+                gasStationListList.GroupBy(gasStation => gasStation.Street)
+                    .OrderBy(gasStationGroup => gasStationGroup.Key)
+                    .Select(gasStationGroup => new {Name = gasStationGroup.Key, GasCount = gasStationGroup.Count()});
 
             Console.WriteLine("\nЗапрос выполнен с помощью методов расширения:");
 
