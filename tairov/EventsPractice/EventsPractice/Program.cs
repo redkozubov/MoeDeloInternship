@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace EventsPractice
+namespace EventsPractice //todo: Добавить пустые строки между методами и классами
 {
     public class Counter : EventArgs
     {
