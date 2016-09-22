@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CurrentElementNonExistent.cs" />
+    <Compile Include="CurrentElementNotExistExcpetion.cs" />
     <Compile Include="MyList.cs" />
     <Compile Include="NoMoreElementsException.cs" />
     <Compile Include="Program.cs" />

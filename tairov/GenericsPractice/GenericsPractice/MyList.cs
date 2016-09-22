@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace GenericsPractice
 {
@@ -11,17 +12,12 @@ namespace GenericsPractice
             public Node PreviousNode { get; set; }
 
             public Node()
+                : this(default(T), null , null)
             {
-                Value = default(T);
-                NextNode = null;
-                PreviousNode = null;
             }
 
-            public Node(T val)
+            public Node(T val) : this (val, null, null)
             {
-                Value = val;
-                NextNode = null;
-                PreviousNode = null;
             }
 
             public Node(T val, Node pNode, Node nNode)
@@ -50,28 +46,37 @@ namespace GenericsPractice
                 if (currentNode != null)
                     currentNode.Value = value;
                 else
-                    throw new CurrentElementNonExistent("Попытка присвоить значение несущещствующему элементу");
+                    throw new CurrentElementNotExistExcpetion("Попытка присвоить значение несущещствующему элементу");
             }
         }
 
         public void AddToHead(T val)
         {
             Node newNode = new Node(val, null, firstNode);
-            firstNode.PreviousNode = newNode;
+            if (firstNode != null)
+                firstNode.PreviousNode = newNode;
             firstNode = newNode;
         }
 
         public void Add(T val)
         {
             Node newNode = new Node(val, lastNode, null);
-            lastNode.NextNode = newNode;
+            if (lastNode != null)
+                lastNode.NextNode = newNode;
             lastNode = newNode;
         }
 
         public T GetNext()
         {
+            if (currentNode == null)
+                throw new CurrentElementNotExistExcpetion();
             currentNode = currentNode.NextNode;
             return CurrentElement;
+        }
+
+        public bool IsEmpty()
+        {
+            return firstNode == null;
         }
 
         public void GoToHead()
@@ -95,21 +100,23 @@ namespace GenericsPractice
 
         public MyList(IEnumerable<T> values)
         {
-            foreach (T val in values)
+            var enumerable = values as T[] ?? values.ToArray();
+            if (enumerable.Count() == 0)
             {
-                if (firstNode == null)
-                {
-                    firstNode = new Node(val);
-                    lastNode = firstNode;
-                }
-                else
-                {
-                    Node nextNode = new Node(val, lastNode, null);
-                    lastNode.NextNode = nextNode;
-                    lastNode = nextNode;
-                }
+                firstNode = null;
+                lastNode = null;
+                currentNode = null;
+                return;
             }
-            GoToHead();
+            firstNode = new Node(enumerable.First());
+            lastNode = firstNode;
+            currentNode = firstNode;
+            foreach (T val in enumerable.Skip(1))
+            {
+                Node nextNode = new Node(val, lastNode, null);
+                lastNode.NextNode = nextNode;
+                lastNode = nextNode;
+            }
         }
     }
 }
