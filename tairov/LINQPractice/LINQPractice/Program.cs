@@ -55,10 +55,26 @@ namespace LINQPractice
                                           Street = groupedStations.Key,
                                           Count = groupedStations.Count()
                                       };
-            // TODO методами расширения
+            var streetsInfo2 = stationsInfo.GroupBy(stationEntity => stationEntity.Street,
+                                                    stationEntity => stationEntity.Company,
+                                                    (street, company) => new
+                                                                        {
+                                                                            Street = street,
+                                                                            Company = company
+                                                                        }).Select(streetStations => new
+                                                                                                    {
+                                                                                                        Street = streetStations.Street,
+                                                                                                        StationsCount = streetStations.Company.GroupBy(company => company).Count()
+                                                                                                    }).OrderBy(streetEntity => streetEntity.Street);
+            Console.WriteLine("Output for query method:");
             foreach (var street in streetsInfo)
             {
                 Console.WriteLine(street.Street + " " + street.Count);
+            }
+            Console.WriteLine("Output for extension methods:");
+            foreach (var s in streetsInfo2)
+            {
+                Console.WriteLine(s.Street + "____________" + s.StationsCount);
             }
             return 0;
         }
