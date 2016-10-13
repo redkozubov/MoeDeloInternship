@@ -49,6 +49,9 @@ namespace MyThreadPool
 
         private void AddTasks(List<MyTask> taskList)
         {
+            int totalTaskCount = Workers.Sum(n => n.TasksInQueueCount) + taskList.Count;
+
+
             Console.WriteLine("Респределяем задачи по воркерам.");
 //            taskList.ForEach(n=> taskQueue.Enqueue(n));
             int taskRange = taskList.Count/Workers.Count;
@@ -81,8 +84,20 @@ namespace MyThreadPool
         protected Thread WorkerThread;
         protected MyTask CurrentTask;
         protected ConcurrentQueue<MyTask> TaskQueue;
-        private Queue<TimeSpan> taskTimeSpanStatistic;
+        private ConcurrentQueue<TimeSpan> taskTimeSpanStatistic;
         private int taskStatisticCount;
+
+        public DateTime TaskStartTime { get; private set; }
+        /// <summary>
+        /// Время запуска процесса.
+        /// </summary>
+        public DateTime ThreadStartTime { get; private set; }
+        /// <summary>
+        /// Кол-во выполненных задач с момента текущего запуска потока
+        /// </summary>
+        public int ExecutedTaskCount { get; private set; }
+        public WorkerStates State { get; private set; }
+
              
 
         public int TasksInQueueCount => TaskQueue.Count;
@@ -92,7 +107,7 @@ namespace MyThreadPool
             WorkerThread = new Thread(RunQueueWorking);
             TaskQueue = new ConcurrentQueue<MyTask>();
             taskStatisticCount = 10;
-            taskTimeSpanStatistic = new Queue<TimeSpan>(taskStatisticCount);
+            taskTimeSpanStatistic = new ConcurrentQueue<TimeSpan>();
         }
 
         /// <summary>
@@ -102,6 +117,7 @@ namespace MyThreadPool
         {
             Console.WriteLine("Запускаем процесс");
             WorkerThread.Start();
+            ThreadStartTime = DateTime.Now;
         }
 
         public void AddTasks(List<MyTask> tasks)
@@ -120,28 +136,6 @@ namespace MyThreadPool
         }
 
         /// <summary>
-        /// Рабочий метод. Выполнение задачи
-        /// </summary>
-        /// <param name="myTask"></param>
-        private void ExecuteTask(MyTask myTask)
-        {
-            var beginTime = DateTime.Now;
-//            Console.WriteLine("Приступили к выполнению задачи");
-            Thread.Sleep(myTask.Data.ExecutionTime);
-            StatisticReg(DateTime.Now - beginTime);
-        }
-
-        /// <summary>
-        /// Добавляем запись о длительости задачи в статистику
-        /// </summary>
-        /// <param name="timeSpan"></param>
-        private void StatisticReg(TimeSpan timeSpan)
-        {
-            if (taskTimeSpanStatistic.Count >= taskStatisticCount)
-                taskTimeSpanStatistic.Dequeue();
-            taskTimeSpanStatistic.Enqueue(timeSpan);
-        }
-        /// <summary>
         /// Запускаем выполнение задач из очереди
         /// </summary>
         private void RunQueueWorking()
@@ -152,7 +146,41 @@ namespace MyThreadPool
                 if (TaskQueue.TryDequeue(out task))
                     ExecuteTask(task);
             }
+
         }
+
+        /// <summary>
+        /// Рабочий метод. Выполнение задачи
+        /// </summary>
+        /// <param name="myTask"></param>
+        private void ExecuteTask(MyTask myTask)
+        {
+            TaskStartTime = DateTime.Now;
+//            Console.WriteLine("Приступили к выполнению задачи");
+            Thread.Sleep(myTask.Data.ExecutionTime);
+            StatisticReg(DateTime.Now - TaskStartTime);
+            TaskStartTime = DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Добавляем запись о длительости задачи в статистику
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        private void StatisticReg(TimeSpan timeSpan)
+        {
+            if (taskTimeSpanStatistic.Count >= taskStatisticCount)
+            {
+                TimeSpan tmp;
+                taskTimeSpanStatistic.TryDequeue(out tmp);
+            }
+            taskTimeSpanStatistic.Enqueue(timeSpan);
+        }
+    }
+
+    public enum WorkerStates
+    {
+        TaskInProcess;
+        TaskQueueIsEmpty;
     }
 }
 
