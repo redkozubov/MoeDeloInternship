@@ -20,8 +20,7 @@ namespace MyThreadPool
             {
                 // Параллельно, иначе консоль закроется
                 var dataGenerator = new DataGenerator();
-                var threadPool = new MainThreadPool();
-                threadPool.Init(dataGenerator);
+                new MainThreadPool(dataGenerator);
 
                 //dataGenerator.DataGeneratedEvent += threadPool.GeneratorOnDataGeneratedEvent;
 

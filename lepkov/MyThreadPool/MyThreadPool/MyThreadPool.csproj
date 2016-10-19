@@ -46,7 +46,10 @@
     <Compile Include="DataGeneratedEventArgs.cs" />
     <Compile Include="DataGenerator.cs" />
     <Compile Include="GeneratedData.cs" />
+    <Compile Include="IDataGenerator.cs" />
     <Compile Include="MainThreadPool.cs" />
+    <Compile Include="MyTask.cs" />
+    <Compile Include="MyWorker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

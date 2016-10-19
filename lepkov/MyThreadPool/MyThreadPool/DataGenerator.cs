@@ -4,7 +4,7 @@ using System.Timers;
 
 namespace MyThreadPool
 {
-    public class DataGenerator
+    public class DataGenerator : IDataGenerator
     {
         public delegate void DataGeneratedEventHandler(object sender, DataGeneratedEventArgs e);
 
