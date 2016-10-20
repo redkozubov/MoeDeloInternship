@@ -23,10 +23,16 @@ namespace MyThreadPool
 
         public DateTime TaskStartTime
         {
-            get {lock (taskStartTimeLocker)
-                {return taskStartTime; }}
-            private set { lock (taskStartTimeLocker)
-                { taskStartTime = value;} }
+            get
+            {
+                lock (taskStartTimeLocker)
+                { return taskStartTime; }
+            }
+            private set
+            {
+                lock (taskStartTimeLocker)
+                { taskStartTime = value; }
+            }
         }
         private DateTime taskStartTime;
 
@@ -35,10 +41,16 @@ namespace MyThreadPool
         /// </summary>
         public DateTime ThreadStartTime
         {
-            get { lock(threadStartTimeLocker)
-            { return threadStartTime;} }
-            private set { lock(threadStartTimeLocker)
-            { threadStartTime = value;} }
+            get
+            {
+                lock (threadStartTimeLocker)
+                { return threadStartTime; }
+            }
+            private set
+            {
+                lock (threadStartTimeLocker)
+                { threadStartTime = value; }
+            }
         }
         private DateTime threadStartTime;
 
@@ -48,10 +60,16 @@ namespace MyThreadPool
         /// </summary>
         public int ExecutedTaskCount
         {
-            get { lock(executedTaskCountLocker)
-            { return executedTaskCount; } }
-            private set { lock(executedTaskCountLocker)
-            { executedTaskCount = value;} }
+            get
+            {
+                lock (executedTaskCountLocker)
+                { return executedTaskCount; }
+            }
+            private set
+            {
+                lock (executedTaskCountLocker)
+                { executedTaskCount = value; }
+            }
         }
         private int executedTaskCount;
 
@@ -65,13 +83,15 @@ namespace MyThreadPool
         public int TasksInQueueCount
         {
             get
-            {lock (taskQueueLocker)
-                { return TaskQueue.Count;}}
+            {
+                lock (taskQueueLocker)
+                { return TaskQueue.Count; }
+            }
         }
 
         public MyWorker()
         {
-            WorkerThread = new Thread(RunQueueWorking);
+            WorkerThread = new Thread(RunTasksExecution);
             TaskQueue = new List<MyTask>();
             taskStatisticCount = 10;
             taskTimeSpanStatistic = new ConcurrentQueue<TimeSpan>();
@@ -107,7 +127,8 @@ namespace MyThreadPool
                 switch (WorkerThread.ThreadState)
                 {
                     case ThreadState.StopRequested:
-                    case ThreadState.Stopped: WorkerThread = new Thread(RunQueueWorking);
+                    case ThreadState.Stopped:
+                        WorkerThread = new Thread(RunTasksExecution);
                         break;
                 }
                 Start();
@@ -118,15 +139,15 @@ namespace MyThreadPool
         /// <summary>
         /// Запускаем выполнение задач из очереди
         /// </summary>
-        private void RunQueueWorking()
+        private void RunTasksExecution()
         {
             MyTask task;
             IsWorking = true;
-            while ( true)
+            while (true)
             {
                 lock (taskQueueLocker)
                 {
-                    if (TaskQueue.Count>0)
+                    if (TaskQueue.Count > 0)
                     {
                         task = TaskQueue[0];
                         TaskQueue.Remove(task);
@@ -134,7 +155,7 @@ namespace MyThreadPool
                     else break;
                 }
                 ExecuteTask(task);
-                ExecutedTaskCount ++;
+                ExecutedTaskCount++;
             }
 
             IsWorking = false;
@@ -149,7 +170,7 @@ namespace MyThreadPool
         private void ExecuteTask(MyTask myTask)
         {
             TaskStartTime = DateTime.Now;
-//            Console.WriteLine("Приступили к выполнению задачи");
+            //            Console.WriteLine("Приступили к выполнению задачи");
             Thread.Sleep(myTask.Data.ExecutionTime);
             //StatisticReg(DateTime.Now - TaskStartTime);
             TaskStartTime = DateTime.MinValue;
@@ -168,7 +189,7 @@ namespace MyThreadPool
             }
             taskTimeSpanStatistic.Enqueue(timeSpan);
         }
-        
+
         public List<MyTask> TakeTasks(int count)
         {
             var res = new List<MyTask>();
@@ -188,6 +209,17 @@ namespace MyThreadPool
             {
                 return TakeTasks(TaskQueue.Count);
             }
-        } 
+        }
+
+        /// <summary>
+        /// Долго выполняемый метод
+        /// </summary>
+        /// <param name="time"></param>
+        private static void Slow(int time)
+        {
+            var end = DateTime.Now + TimeSpan.FromMilliseconds(time);
+            while (DateTime.Now < end);
+        }
+
     }
 }

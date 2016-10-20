@@ -22,7 +22,7 @@ namespace MyThreadPool
                 var dataGenerator = new DataGenerator();
                 new MainThreadPool(dataGenerator);
 
-                //dataGenerator.DataGeneratedEvent += threadPool.GeneratorOnDataGeneratedEvent;
+                //dataGenerator.DataGeneratedEvent += threadPool.OnDataGeneratedEvent;
 
                 //(sender, eventArgs) =>
                 //{

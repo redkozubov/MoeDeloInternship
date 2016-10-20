@@ -18,19 +18,15 @@ namespace MyThreadPool
     /// </summary>
     public class MainThreadPool
     {
-        /// <summary>
-        /// очередь задач на выполнение
-        /// </summary>
-        private Queue<MyTask> taskQueue { get; set; }
 
         protected List<MyWorker> Workers;
         protected Queue<MyWorker> WorkersExcess; // сюда перемещаем воркеры, которым нужно доделатьсвою задачу. 
-        private Timer chekWorkersTimer;
-        private int maxExecutionTimeMs;
-        private int maxWorkersCount;
-        private int minWorkersCount;
+        private readonly Timer chekWorkersTimer;
+        private readonly int maxExecutionTimeMs;
+        private readonly int maxWorkersCount;
+        private readonly int minWorkersCount;
         int chekPeriod;
-        private object workersLocker = new object();
+        private readonly object workersLocker = new object();
 
         public  MainThreadPool ()
         {
@@ -51,7 +47,7 @@ namespace MyThreadPool
 
         public MainThreadPool(IDataGenerator generator) : this()
         {
-            generator.DataGeneratedEvent += GeneratorOnDataGeneratedEvent;
+            generator.DataGeneratedEvent += OnDataGeneratedEvent;
         }
 
         /// <summary>
@@ -59,7 +55,7 @@ namespace MyThreadPool
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="dataGeneratedEventArgs"></param>
-        public void GeneratorOnDataGeneratedEvent(object sender, DataGeneratedEventArgs dataGeneratedEventArgs)
+        public void OnDataGeneratedEvent(object sender, DataGeneratedEventArgs dataGeneratedEventArgs)
         {
             Console.WriteLine("{0} Получены задачи от генератора. {1} задач", DateTime.Now.ToString("hh: mm:ss.fff tt"),
                 dataGeneratedEventArgs.Data.Count());
@@ -70,10 +66,10 @@ namespace MyThreadPool
         }
         private void ChekWorkersTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            ChekWorkers();
+            CheckWorkers();
         }
         
-        private void ChekWorkers()
+        private void CheckWorkers()
         {
             int totalExecutedTaskCount = 0;
             int totalTaskTime = 0;
@@ -89,7 +85,7 @@ namespace MyThreadPool
                     executedTaskCount = worker.ExecutedTaskCount;
 
                     // время пошло, значит процесс уже запущен
-                    if (startTime > DateTime.MinValue)
+                    if (worker.IsWorking)
                     {
                         totalTaskTime += (int) (DateTime.Now - startTime).TotalMilliseconds;
                         totalExecutedTaskCount += executedTaskCount > 0 ? executedTaskCount : 1; // Если счётчик пока в нуле, значит обрабатываем первую задачу
@@ -133,6 +129,7 @@ namespace MyThreadPool
                         for (int i = 0; i < getFromExcessCount; i++)
                         {
                             Workers.Add(WorkersExcess.Dequeue());
+                            needCount--;
                         }
 
                         Console.WriteLine("{0} ДОБАВЛЯЕМ воркеры {1}", DateTime.Now.ToString("hh: mm:ss.fff tt"), needCount);
@@ -207,8 +204,6 @@ namespace MyThreadPool
 
             lock (workersLocker)
             {
-                int totalTaskCount = workers.Sum(n => n.TasksInQueueCount) + taskList.Count;
-
                 if (workers.Count == 0)
                 {
                     for (int i = 0; i < minWorkersCount; i++)
@@ -219,6 +214,9 @@ namespace MyThreadPool
 
                 //Console.WriteLine("Респределяем задачи по воркерам.");
                 int taskRange = taskList.Count/workers.Count; // сколько задач отдадим каждому воркеру
+
+                // Todo посчитать общее кол-во задач , а не только новые
+
                 /*  int taskExcess = taskList.Count%workers.Count; // счётчик избытка задач
 
                 for (int i = 0; i < workers.Count; i++)
@@ -262,8 +260,10 @@ namespace MyThreadPool
                     taskToWorkerCount = Math.Min(workerCapacity - taskInQueue, taskList.Count);
                     worker.AddTasks(taskList.GetRange(0, taskToWorkerCount));
                     taskList.RemoveRange(0, taskToWorkerCount);
-                    if(worker.TasksInQueueCount < workerCapacity)
-                    { ligthWorkers.Enqueue(worker);}
+                    if (worker.TasksInQueueCount < workerCapacity)
+                    {
+                        ligthWorkers.Enqueue(worker);
+                    }
                 }
             });
             while (taskList.Count > 0 && ligthWorkers.Count >0)
