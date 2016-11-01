@@ -11,7 +11,7 @@ namespace LinqExample
         static void Main(string[] args) //todo : rename
         {
             // Заполняем список АЗС
-            var gasList = new GasStation[]
+            var gasStationListList = new GasStation[]
             {
                 new GasStation("Лукойл", "Рахова", 3450, 92 ),
                 new GasStation("ТНК", "Вавилова", 3500, 92),
@@ -23,23 +23,39 @@ namespace LinqExample
                 new GasStation("Премье", "Ямская", 3470, 98)
             };
 
+
+            Console.WriteLine("\nФормируем LINQ запрос:");
+
             // группируем по названию улицы
-            var strLst = from gas in gasList
+            var streetList = from gas in gasStationListList
                 group gas by gas.Street
-                into sd //todo : street
-                         orderby sd.Key                                         // соритруем по названию улицы 
-                         select new {Name = sd.Key, GasCount = sd.Count()};     // создаём список пар { Улица, Кол-во_АЗС}
+                into street //todo : street
+                         orderby street.Key                                         // соритруем по названию улицы 
+                         select new {Name = street.Key, GasCount = street.Count()};     // создаём список пар { Улица, Кол-во_АЗС}
 
 
 
-            foreach (var s in strLst)
+            foreach (var s in streetList)
+            {
+                Console.WriteLine("На улице {0} \tрасполагается {1} АЗС.", s.Name, s.GasCount);
+            }
+
+            // todo: методы расширения 
+
+            streetList =
+                gasStationListList.GroupBy(gasStation => gasStation.Street)
+                    .OrderBy(gasStationGroup => gasStationGroup.Key)
+                    .Select(gasStationGroup => new {Name = gasStationGroup.Key, GasCount = gasStationGroup.Count()});
+
+            Console.WriteLine("\nЗапрос выполнен с помощью методов расширения:");
+
+            foreach (var s in streetList)
             {
                 Console.WriteLine("На улице {0} \tрасполагается {1} АЗС.", s.Name, s.GasCount);
             }
 
 
-            // todo: методы расширения 
-            
+
             Console.ReadLine();
         }
     }
