@@ -9,30 +9,30 @@ namespace MyThreadPool
     {
         private int threadsNumber;
         private long threadWaitTime;
-        private double growthQuotient;
         private Stopwatch timer;
         private int maxExecutionTimeMs;
 
         private ConcurrentQueue<Action<int>> taskQueue;
         private ConcurrentQueue<long> timeQueue;
-        private ConcurrentQueue<int> paramQueue;
+        private readonly ConcurrentQueue<int> paramQueue;
 
         private delegate void TaskReceivedEventHandler(object sender, TaskReceivedEventArgs e);
 
         private event TaskReceivedEventHandler TaskRecievedEvent;
 
-        public MyThreadPool(int maxExTime, int threadNumber, double quotient, long waitTime)
+        public MyThreadPool(int maxExTime, int threadNumber, long waitTime)
         {
             maxExecutionTimeMs = maxExTime;
-            growthQuotient = quotient;
             threadWaitTime = waitTime;
             taskQueue = new ConcurrentQueue<Action<int>>();
             timeQueue = new ConcurrentQueue<long>();
-            paramQueue=new ConcurrentQueue<int>();
+            paramQueue = new ConcurrentQueue<int>();
             TaskRecievedEvent += OnRecievingTask;
             timer = new Stopwatch();
             timer.Start();
             CreateThreads(threadNumber);
+            Thread additionalThreadsCreator = new Thread(QueueObserver);
+            additionalThreadsCreator.Start();
         }
 
         public void RaiseEvent(Action<int> a, int param)
@@ -45,12 +45,6 @@ namespace MyThreadPool
             taskQueue.Enqueue(e.Task);
             timeQueue.Enqueue(timer.ElapsedMilliseconds);
             paramQueue.Enqueue(e.param);
-            long firstTaskTime;
-            timeQueue.TryPeek(out firstTaskTime);
-            if (timer.ElapsedMilliseconds - firstTaskTime <= maxExecutionTimeMs)
-                return;
-            int additionalThreadsNumber = 1 + (int)(threadsNumber * growthQuotient);
-            CreateThreads(additionalThreadsNumber);
         }
 
         private void CreateThreads(int thrNum)
@@ -75,7 +69,7 @@ namespace MyThreadPool
                 taskQueue.TryDequeue(out currentAction);
                 paramQueue.TryDequeue(out currentParam);
                 timeQueue.TryDequeue(out currentTaskTime);
-                if (currentAction!=null)
+                if (currentAction != null)
                 {
                     Console.WriteLine($"{DateTime.Now:hh:mm:ss.fff tt} Задача начата.");
                     currentAction(currentParam);
@@ -89,6 +83,25 @@ namespace MyThreadPool
                     Interlocked.Decrement(ref threadsNumber);
                     Console.WriteLine($"{DateTime.Now:hh:mm:ss.fff tt} Поток удалён.");
                     return;
+                }
+            }
+        }
+
+        private void QueueObserver()
+        {
+            while (true)
+            {
+                long firstTaskTime;
+                long currentTime = timer.ElapsedMilliseconds;
+                timeQueue.TryPeek(out firstTaskTime);
+                while (currentTime - firstTaskTime > maxExecutionTimeMs)
+                {
+                    timeQueue.TryDequeue(out firstTaskTime);
+                    timeQueue.TryPeek(out firstTaskTime);
+                }
+                if (timeQueue.Count > threadsNumber)
+                {
+                    CreateThreads(timeQueue.Count - threadsNumber);
                 }
             }
         }

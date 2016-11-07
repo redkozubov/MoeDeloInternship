@@ -13,7 +13,7 @@ namespace MyThreadPool
                 long threadWaitTime = 2000;
                 double growthQuotient = 0.25;
                 int threadNumber = 5;
-                MyThreadPool pool = new MyThreadPool(dg.standartExecutionTime,threadNumber,growthQuotient,threadWaitTime);
+                MyThreadPool pool = new MyThreadPool(dg.standartExecutionTime,threadNumber,threadWaitTime);
                 dg.DataGeneratedEvent += (sender, dataGeneratedEventArgs) =>
                 {
                     Console.WriteLine(($"{DateTime.Now:hh:mm:ss.fff tt} Сгенерировано задание"));
